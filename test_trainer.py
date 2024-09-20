@@ -10,13 +10,28 @@ from transformers.training_args import TrainingArguments
 from hf_mtask_trainer import HfMultiTaskTrainer
 
 
-class TestModel(nn.Module):
+class TestSubModule(nn.Module):
+    supports_report_metrics: bool = True  # this is important in the future
 
     def __init__(self, ) -> None:
         super().__init__()
+
+    def forward(self):
+        self.report_metrics(constant=1.0)
+
+
+class TestModel(nn.Module):
+    supports_report_metrics: bool = True  # this is important in the future
+
+    def __init__(self, ) -> None:
+        super().__init__()
+        # add a submodule
+        self.submodule = TestSubModule()
         self.scaler = nn.Parameter(torch.ones(1))
 
     def forward(self, x):
+        # call submodule and report metrics
+        self.submodule()
         test_tensor = x + self.scaler
         test_np = np.array(np.random.randn()).astype(np.float32)
         test_int = random.randint(1, 100)
