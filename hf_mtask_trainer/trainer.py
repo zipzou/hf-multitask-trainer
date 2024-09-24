@@ -24,7 +24,6 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
-from torch import nn
 from torch.nn import Module
 from torch.optim.lr_scheduler import LambdaLR
 from torch.optim.optimizer import Optimizer as Optimizer
@@ -45,7 +44,7 @@ DataCollator = Callable[[List[Any]], Dict[str, Any]]
 def _patching_module_base(module: Module, additional_state: AdditionalState):
     if isinstance(
         module, Module
-    ) and MultiTaskModuleMixin not in module.__class__.__bases__:  # this is a temporal solution, the flag `supports_report_metrics` will be checked in the future to avoid patching each module.
+    ) and hasattr(module, 'supports_report_metrics') and module.supports_report_metrics and MultiTaskModuleMixin not in module.__class__.__bases__:
         module.__class__.__bases__ = module.__class__.__bases__ + (
             MultiTaskModuleMixin,
         )

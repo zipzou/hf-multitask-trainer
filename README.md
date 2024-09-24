@@ -45,6 +45,9 @@ Follow these steps to use the `HfMultiTaskTrainer`:
     import torch.nn as nn
 
     class Model(nn.Module):
+
+        supports_report_metrics: bool = True
+
         def __init__(...):
             super().__init__(...)
             # Additional initialization code
@@ -58,6 +61,8 @@ Follow these steps to use the `HfMultiTaskTrainer`:
             # Report the metrics
             self.report_metrics(loss1=task1_loss, loss2=task2_loss, acc=acc, f1=f1)
     ```
+
+    Add a flag `supports_report_metrics` where you need to report metrics, otherwise, the `report_metrics` would be not accessible.
 
 4. Start training the model:
 
@@ -85,6 +90,7 @@ from hf_mtask_trainer import HfMultiTaskTrainer
 
 # The model class
 class TestModel(nn.Module):
+    supports_report_metrics: bool = True # IMPORTANT
 
     def __init__(self, ) -> None:
         super().__init__()
@@ -95,13 +101,13 @@ class TestModel(nn.Module):
         test_np = np.array(np.random.randn()).astype(np.float32)
         test_int = random.randint(1, 100)
         test_float = random.random()
-
-        self.report_metrics(
-            tensor=test_tensor,
-            np=test_np,
-            integer=test_int,
-            fp_num=test_float
-        )
+        if hasattr(self, report_metrics): # checking if the report method is accessible or not is the robust practice
+            self.report_metrics(
+                tensor=test_tensor,
+                np=test_np,
+                integer=test_int,
+                fp_num=test_float
+            )
 
         loss = ((
             test_tensor + torch.from_numpy(test_np) + torch.tensor(test_int) +
