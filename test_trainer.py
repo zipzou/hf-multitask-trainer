@@ -11,17 +11,18 @@ from hf_mtask_trainer import HfMultiTaskTrainer
 
 
 class TestSubModule(nn.Module):
-    supports_report_metrics: bool = True  # this is important in the future
+    supports_report_metrics: bool = True
 
     def __init__(self, ) -> None:
         super().__init__()
 
     def forward(self):
-        self.report_metrics(constant=1.0)
+        if hasattr(self, 'report_metrics'):
+            self.report_metrics(constant=1.0)
 
 
 class TestModel(nn.Module):
-    supports_report_metrics: bool = True  # this is important in the future
+    supports_report_metrics: bool = True
 
     def __init__(self, ) -> None:
         super().__init__()
@@ -37,12 +38,13 @@ class TestModel(nn.Module):
         test_int = random.randint(1, 100)
         test_float = random.random()
 
-        self.report_metrics(
-            tensor=test_tensor,
-            np=test_np,
-            integer=test_int,
-            fp_num=test_float
-        )
+        if hasattr(self, 'report_metrics'):
+            self.report_metrics(
+                tensor=test_tensor,
+                np=test_np,
+                integer=test_int,
+                fp_num=test_float
+            )
 
         loss = ((
             test_tensor + torch.from_numpy(test_np) + torch.tensor(test_int) +
