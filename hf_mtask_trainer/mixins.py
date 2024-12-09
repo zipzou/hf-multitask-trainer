@@ -29,10 +29,6 @@ from .state import AdditionalState
 from .types import Number
 
 
-class MultiTaskModuleMixin():
-
-    def report_metrics(
-        self, state: AdditionalState, **metrics: Union[Number, torch.Tensor,
-                                                       npt.NDArray]
-    ):
+class MultiTaskModuleMixin:
+    def report_metrics(self, state: AdditionalState, **metrics: Union[Number, torch.Tensor, npt.NDArray]):
         state.add_metrics(**metrics)
