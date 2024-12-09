@@ -77,9 +77,17 @@ class HfMultiTaskTrainer(Trainer):
             )
             model.apply(report_pathcing)
         super().__init__(
-            model, args, data_collator, train_dataset, eval_dataset, tokenizer,
-            model_init, compute_metrics, callbacks, optimizers,
-            preprocess_logits_for_metrics
+            model=model,
+            args=args,
+            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            processing_class=tokenizer,
+            model_init=model_init,
+            compute_metrics=compute_metrics,
+            callbacks=callbacks,
+            optimizers=optimizers,
+            preprocess_logits_for_metrics=preprocess_logits_for_metrics
         )
 
     def log(self, logs: Dict[str, float]) -> None:
