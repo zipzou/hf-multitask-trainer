@@ -17,10 +17,10 @@ By the way, another utility you might need is [parser-binding](https://github.co
 Follow these steps to use the `HfMultiTaskTrainer`:
 
 1. Install the trainer:
-
-    ```sh
-    pip install hf-mtask-trainer
-    ```
+   
+   ```sh
+   pip install "hf_mtask_trainer @ git+https://github.com/bauwenst/hf-multitask-trainer"
+   ```
 
 2. Replace the default trainer with `HfMultiTaskTrainer`:
 
