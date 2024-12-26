@@ -1,10 +1,12 @@
+**Deprecation notice:** this package's responsibilities are now handled by a mixin class provided by [ArchIt](https://github.com/bauwenst/ArchIt), and with proper object-oriented design. This repo will no longer be updated.
+
 # Enhanced Multitask Trainer for Separately Reporting Task's Metrics or Losses in HuggingFace Transformers
 
 The [HuggingFace transformers](https://github.com/huggingface/transformers) library is widely used for model training. For example, to adapt a pretrained BERT model to a specific task domain, we often continue pretraining the model with two tasks in BERT: 1) Next Sentence Prediction (NSP) using the `[CLS]` token, and 2) Masked Language Modeling (MLM) using masked tokens. 
 
-**A key issue is that the default `Trainer` in `transformers` assumes the first element of the output is the final loss to minimize. The loss returned by the `forward` method must be a scalar, so when training a multitask model like BERT, the loss needs to be combined.**
+*A key issue is that the default `Trainer` in `transformers` assumes the first element of the output is the final loss to minimize. The loss returned by the `forward` method must be a scalar, so when training a multitask model like BERT, the loss needs to be combined.*
 
-**The `Trainer` class offers command-line arguments to control the training process. However, it only provides a combined loss value for all tasks, which obscures the individual losses of each task. This makes it challenging to monitor training and debug different task settings. Additionally, the `Tensorboard` report only shows the combined loss in its metrics.**
+*The `Trainer` class offers command-line arguments to control the training process. However, it only provides a combined loss value for all tasks, which obscures the individual losses of each task. This makes it challenging to monitor training and debug different task settings. Additionally, the `Tensorboard` report only shows the combined loss in its metrics.*
 
 To facilitate multitask model training and review the loss of each task, as well as other training metrics, this trainer implementation is simple and useful.
 
