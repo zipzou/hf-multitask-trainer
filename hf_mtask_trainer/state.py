@@ -35,8 +35,7 @@ from .types import Number
 class AdditionalState:
 
     def __init__(self, args: TrainingArguments) -> None:
-        self.metrics: Dict[str, List[Union[Number, torch.Tensor,
-                                           npt.NDArray]]] = defaultdict(list)
+        self.metrics: Dict[str, List[Union[Number, torch.Tensor, npt.NDArray]]] = defaultdict(list)
         self.args = weakref.ref(args)
 
     def add_metrics(self, **metrics: Union[Number, torch.Tensor, npt.NDArray]):
@@ -46,8 +45,7 @@ class AdditionalState:
     def get_metrics(
         self,
         step_scale: float = 1.0,
-        gather_func: Optional[Callable[
-            [Union[torch.Tensor, List[torch.Tensor]]], torch.Tensor]] = None,
+        gather_func: Optional[Callable[[Union[torch.Tensor, List[torch.Tensor]]], torch.Tensor]] = None,
         round_digits: Optional[int] = None
     ) -> Dict[str, Number]:
         metrics: Dict[str, List[Number]] = defaultdict(list)
@@ -84,8 +82,7 @@ class AdditionalState:
 
     def pop_metrics(
         self,
-        gather_func: Optional[Callable[
-            [Union[torch.Tensor, List[torch.Tensor]]], torch.Tensor]] = None,
+        gather_func: Optional[Callable[[Union[torch.Tensor, List[torch.Tensor]]], torch.Tensor]] = None,
         round_digits: Optional[int] = None
     ):
         ret = self.get_metrics(gather_func, round_digits)

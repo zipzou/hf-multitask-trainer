@@ -32,7 +32,7 @@ from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer import Trainer
 from transformers.trainer_callback import TrainerCallback
-from transformers.trainer_utils import EvalPrediction
+from transformers.trainer_utils import EvalPrediction, speed_metrics
 from transformers.training_args import TrainingArguments
 
 from .mixins import MultiTaskModuleMixin
@@ -42,15 +42,12 @@ DataCollator = Callable[[List[Any]], Dict[str, Any]]
 
 
 def _patching_module_base(module: Module, additional_state: AdditionalState):
-    if isinstance(
-        module, Module
-    ) and hasattr(module, 'supports_report_metrics') and module.supports_report_metrics and MultiTaskModuleMixin not in module.__class__.__bases__:
-        module.__class__.__bases__ = module.__class__.__bases__ + (
-            MultiTaskModuleMixin,
-        )
-        module.report_metrics = partial(
-            module.report_metrics, additional_state
-        )
+    if isinstance(module, Module) \
+            and hasattr(module, 'supports_report_metrics') \
+            and module.supports_report_metrics \
+            and MultiTaskModuleMixin not in module.__class__.__bases__:
+        module.__class__.__bases__ = module.__class__.__bases__ + (MultiTaskModuleMixin,)
+        module.report_metrics = partial(module.report_metrics, additional_state)
 
 
 class HfMultiTaskTrainer(Trainer):
@@ -67,45 +64,44 @@ class HfMultiTaskTrainer(Trainer):
         compute_metrics: Optional[Callable[[EvalPrediction], Dict]] = None,
         callbacks: Optional[List[TrainerCallback]] = None,
         optimizers: Optional[Tuple[Optimizer, LambdaLR]] = (None, None),
-        preprocess_logits_for_metrics: Optional[Callable[
-            [torch.Tensor, torch.Tensor], torch.Tensor]] = None
+        preprocess_logits_for_metrics: Optional[Callable[[torch.Tensor, torch.Tensor], torch.Tensor]] = None
     ):
         self.additional_state = AdditionalState(args)
         if model is not None:
-            report_pathcing = partial(
-                _patching_module_base, additional_state=self.additional_state
-            )
-            model.apply(report_pathcing)
+            report_patching = partial(_patching_module_base, additional_state=self.additional_state)
+            model.apply(report_patching)
         super().__init__(
-            model, args, data_collator, train_dataset, eval_dataset, tokenizer,
-            model_init, compute_metrics, callbacks, optimizers,
-            preprocess_logits_for_metrics
+            model=model,
+            args=args,
+            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            processing_class=tokenizer,
+            model_init=model_init,
+            compute_metrics=compute_metrics,
+            callbacks=callbacks,
+            optimizers=optimizers,
+            preprocess_logits_for_metrics=preprocess_logits_for_metrics
         )
 
-    def log(self, logs: Dict[str, float]) -> None:
+    def log(self, logs: Dict[str, float], start_time: Optional[float]=None) -> None:
+        # Copied from transformers 4.47.0
         if self.state.epoch is not None:
             logs["epoch"] = self.state.epoch
         if self.args.include_num_input_tokens_seen:
             logs["num_input_tokens_seen"] = self.state.num_input_tokens_seen
+            if start_time is not None:
+                speed_metrics("train", start_time, num_tokens=self.state.num_input_tokens_seen)
 
-        if hasattr(self, 'additional_state'):
-            additional_logs = self.additional_state.pop_metrics(
-                gather_func=self._nested_gather
-            )
-        else:
-            additional_logs = {}
+        ##### Added
+        additional_logs = self.additional_state.pop_metrics(gather_func=self._nested_gather) if hasattr(self, 'additional_state') else dict()
 
         epoch = logs.pop('epoch', None)
         logs.update(additional_logs)
         logs['epoch'] = epoch
+        #####
 
-        output = {
-            **logs,
-            **{
-                "step": self.state.global_step
-            }
-        }
+        # Copied from transformers 4.47.0
+        output = logs | {"step": self.state.global_step}
         self.state.log_history.append(output)
-        self.control = self.callback_handler.on_log(
-            self.args, self.state, self.control, logs
-        )
+        self.control = self.callback_handler.on_log(self.args, self.state, self.control, logs)
