@@ -1,0 +1,64 @@
+[build-system]
+# 指定构建所需依赖和后端工具
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# 项目基本信息
+name = "hf-mtask-trainer"
+version = "0.0.3"
+description = "A HF Trainer Implementation for Multitask Training Logs"
+readme = "README.md"
+# readme-content-type = "text/markdown"
+authors = [
+    {name = "zipzou"}
+]
+license = {file = "LICENSE"}
+# homepage = "https://github.com/zipzou/hf-multitask-trainer"
+
+# 项目分类信息（对应 setup.cfg 的 classifier 字段）
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11"
+]
+
+# Python 版本要求
+requires-python = ">=3.7"
+
+# 项目依赖
+dependencies = [
+    "torch",
+    "transformers > 4.45.2",
+    "accelerate"
+]
+
+[project.urls]
+Homepage = "https://github.com/zipzou/hf-multitask-trainer"
+
+# 测试依赖
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
+[tool.setuptools.packages.find]
+# 自动发现包配置
+include = ["*"]
+
+[tool.setuptools]
+# 包含所有数据文件
+include-package-data = true
+# 是否允许 zip 安装
+zip-safe = false
+
+# [tool.setuptools.sdist]
+# 自定义源分发目录
+# dist-dir = "output/dist"
+
+# [tool.setuptools.bdist_wheel]
+# 自定义二进制分发目录
+# dist-dir = "output/dist"

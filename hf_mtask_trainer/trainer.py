@@ -25,10 +25,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 from torch.nn import Module
-from torch.optim.lr_scheduler import LambdaLR
 from torch.optim.optimizer import Optimizer as Optimizer
 from torch.utils.data import Dataset, IterableDataset
+from transformers.feature_extraction_utils import FeatureExtractionMixin
+from transformers.image_processing_utils import BaseImageProcessor
 from transformers.modeling_utils import PreTrainedModel
+from transformers.processing_utils import ProcessorMixin
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from transformers.trainer import Trainer
 from transformers.trainer_callback import TrainerCallback
@@ -57,18 +59,23 @@ class HfMultiTaskTrainer(Trainer):
 
     def __init__(
         self,
-        model: Optional[Union[PreTrainedModel, Module]] = None,
-        args: Optional[TrainingArguments] = None,
+        model: Union[PreTrainedModel, Module] = None,
+        args: TrainingArguments = None,
         data_collator: Optional[DataCollator] = None,
-        train_dataset: Optional[Union[Dataset, IterableDataset, Any]] = None,
-        eval_dataset: Optional[Union[Dataset, Dict[str, Dataset], Any]] = None,
-        tokenizer: Optional[PreTrainedTokenizerBase] = None,
+        train_dataset: Optional[Union[Dataset, IterableDataset]] = None,
+        eval_dataset: Optional[Union[Dataset, Dict[str, Dataset]]] = None,
+        processing_class: Optional[Union[PreTrainedTokenizerBase,
+                                         BaseImageProcessor,
+                                         FeatureExtractionMixin,
+                                         ProcessorMixin]] = None,
         model_init: Optional[Callable[[], PreTrainedModel]] = None,
+        compute_loss_func: Optional[Callable] = None,
         compute_metrics: Optional[Callable[[EvalPrediction], Dict]] = None,
         callbacks: Optional[List[TrainerCallback]] = None,
-        optimizers: Optional[Tuple[Optimizer, LambdaLR]] = (None, None),
+        optimizers: Tuple[torch.optim.Optimizer,
+                          torch.optim.lr_scheduler.LambdaLR] = (None, None),
         preprocess_logits_for_metrics: Optional[Callable[
-            [torch.Tensor, torch.Tensor], torch.Tensor]] = None
+            [torch.Tensor, torch.Tensor], torch.Tensor]] = None,
     ):
         self.additional_state = AdditionalState(args)
         if model is not None:
@@ -77,16 +84,38 @@ class HfMultiTaskTrainer(Trainer):
             )
             model.apply(report_patching)
         super().__init__(
-            model, args, data_collator, train_dataset, eval_dataset, tokenizer,
-            model_init, compute_metrics, callbacks, optimizers,
-            preprocess_logits_for_metrics
+            model=model,
+            args=args,
+            data_collator=data_collator,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            processing_class=processing_class,
+            model_init=model_init,
+            compute_loss_func=compute_loss_func,
+            compute_metrics=compute_metrics,
+            callbacks=callbacks,
+            optimizers=optimizers,
+            preprocess_logits_for_metrics=preprocess_logits_for_metrics
         )
 
-    def log(self, logs: Dict[str, float]) -> None:
+    def log(
+        self,
+        logs: Dict[str, float],
+        start_time: Optional[float] = None
+    ) -> None:
         if self.state.epoch is not None:
             logs["epoch"] = self.state.epoch
         if self.args.include_num_input_tokens_seen:
             logs["num_input_tokens_seen"] = self.state.num_input_tokens_seen
+            if start_time is not None:
+                from transformers.trainer_utils import speed_metrics
+
+                # Copied from transformers 4.47.0
+                speed_metrics(
+                    "train",
+                    start_time,
+                    num_tokens=self.state.num_input_tokens_seen
+                )
 
         if hasattr(self, 'additional_state'):
             additional_logs = self.additional_state.pop_metrics(
