@@ -1,3 +1,3 @@
-from typing import NewType
+from typing import Union
 
-Number = NewType('Number', (int, float))
+Number = Union[int, float]

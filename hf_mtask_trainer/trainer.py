@@ -42,9 +42,9 @@ DataCollator = Callable[[List[Any]], Dict[str, Any]]
 
 
 def _patching_module_base(module: Module, additional_state: AdditionalState):
-    if isinstance(
-        module, Module
-    ) and hasattr(module, 'supports_report_metrics') and module.supports_report_metrics and MultiTaskModuleMixin not in module.__class__.__bases__:
+    if isinstance(module, Module) and hasattr(
+        module, 'supports_report_metrics'
+    ) and module.supports_report_metrics and MultiTaskModuleMixin not in module.__class__.__bases__:
         module.__class__.__bases__ = module.__class__.__bases__ + (
             MultiTaskModuleMixin,
         )
@@ -72,10 +72,10 @@ class HfMultiTaskTrainer(Trainer):
     ):
         self.additional_state = AdditionalState(args)
         if model is not None:
-            report_pathcing = partial(
+            report_patching = partial(
                 _patching_module_base, additional_state=self.additional_state
             )
-            model.apply(report_pathcing)
+            model.apply(report_patching)
         super().__init__(
             model, args, data_collator, train_dataset, eval_dataset, tokenizer,
             model_init, compute_metrics, callbacks, optimizers,
