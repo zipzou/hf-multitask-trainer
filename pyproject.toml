@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # 项目基本信息
 name = "hf-mtask-trainer"
-version = "0.0.4"
+version = "0.0.5"
 description = "A HF Trainer Implementation for Multitask Training Logs"
 readme = "README.md"
 # readme-content-type = "text/markdown"
@@ -32,7 +32,7 @@ requires-python = ">=3.7"
 # 项目依赖
 dependencies = [
     "torch",
-    "transformers >4.45.2, <4.47.0",
+    "transformers >=4.47.0",
     "accelerate"
 ]
 
