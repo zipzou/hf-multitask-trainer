@@ -21,7 +21,7 @@
 '''The trainer supporting multiple metrics record.'''
 
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import torch
 from torch.nn import Module
@@ -74,6 +74,7 @@ class HfMultiTaskTrainer(Trainer):
         callbacks: Optional[List[TrainerCallback]] = None,
         optimizers: Tuple[torch.optim.Optimizer,
                           torch.optim.lr_scheduler.LambdaLR] = (None, None),
+        optimizer_cls_and_kwargs: Optional[Tuple[Type[torch.optim.Optimizer], Dict[str, Any]]] = None,
         preprocess_logits_for_metrics: Optional[Callable[
             [torch.Tensor, torch.Tensor], torch.Tensor]] = None,
     ):
@@ -95,6 +96,7 @@ class HfMultiTaskTrainer(Trainer):
             compute_metrics=compute_metrics,
             callbacks=callbacks,
             optimizers=optimizers,
+            optimizer_cls_and_kwargs=optimizer_cls_and_kwargs,
             preprocess_logits_for_metrics=preprocess_logits_for_metrics
         )
 
